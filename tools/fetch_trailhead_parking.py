@@ -43,6 +43,21 @@ MAX_RETRIES = 3
 REQUEST_TIMEOUT_SECONDS = 45
 USER_AGENT = "MountainScope-DataPipeline/1.0 (personal hiking app; contact via github)"
 
+# Same optional scope-down as build_database.py: set BBOX_FILTER="south,west,north,east"
+# to only consider occupied cells inside it. Without this, occupied_cells() picks up
+# every peak/POI ever fetched, including stray data left over from an earlier, more
+# broadly-scoped run (e.g. Antarctic tiles from a since-abandoned global fetch) — wasting
+# time querying parking near places nothing else in the app currently covers.
+_bbox_env = os.environ.get("BBOX_FILTER")
+BBOX_FILTER = tuple(float(x) for x in _bbox_env.split(",")) if _bbox_env else None
+
+
+def in_bbox(lat, lon):
+    if BBOX_FILTER is None:
+        return True
+    south, west, north, east = BBOX_FILTER
+    return south <= lat <= north and west <= lon <= east
+
 
 def occupied_cells():
     cells = set()
@@ -55,6 +70,8 @@ def occupied_cells():
                 if not line:
                     continue
                 rec = json.loads(line)
+                if not in_bbox(rec["lat"], rec["lon"]):
+                    continue
                 cells.add((math.floor(rec["lat"]), math.floor(rec["lon"])))
     return cells
 
