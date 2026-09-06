@@ -35,7 +35,12 @@ RAW_POIS_PATH = os.path.join(DATA_DIR, "raw_pois.jsonl")
 RAW_PARKING_PATH = os.path.join(DATA_DIR, "raw_parking.jsonl")
 PROGRESS_PATH = os.path.join(DATA_DIR, "parking_progress.json")
 
-OVERPASS_ENDPOINTS = ["https://overpass.kumi.systems/api/interpreter"]
+# See fetch_osm_peaks.py for the full mirror notes (including why overpass-api.de looked
+# blocked but wasn't — a bare "Mozilla/5.0" User-Agent test was the actual culprit).
+OVERPASS_ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+]
 CELL_SIZE_DEG = 1
 MAX_RESULTS_PER_CELL = 300  # safety cap so one urban cell can't return a huge payload
 REQUEST_DELAY_SECONDS = 1.5

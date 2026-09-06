@@ -35,19 +35,27 @@ RAW_POIS_PATH = os.path.join(DATA_DIR, "raw_pois.jsonl")
 PROGRESS_PATH = os.path.join(DATA_DIR, "progress.json")
 FAILED_PATH = os.path.join(DATA_DIR, "failed_tiles.json")
 
-# Public Overpass mirror. IMPORTANT: this must be a genuinely global instance.
-# overpass-api.de (the "main" instance) was unreachable (406) from where this was
-# developed; overpass.openstreetmap.fr returned 403; overpass.osm.ch LOOKED global (it
-# has no coverage disclaimer in its query responses) but is actually the "Swiss Overpass
-# API" — a regional mirror that returns valid, error-free, EMPTY results for anywhere
-# outside Switzerland/nearby. It was in rotation for a full run and silently produced a
+# Public Overpass mirrors. IMPORTANT: each must be a genuinely global instance.
+# overpass.openstreetmap.fr returned 403; overpass.osm.ch LOOKED global (it has no
+# coverage disclaimer in its query responses) but is actually the "Swiss Overpass API" —
+# a regional mirror that returns valid, error-free, EMPTY results for anywhere outside
+# Switzerland/nearby. It was in rotation for a full run and silently produced a
 # near-empty worldwide database (only the Alps came back real) without raising a single
 # error, so treat "looks fine, returns 200" as insufficient — verify new mirrors against
 # a bbox far from Europe (e.g. Colorado, 38.5,-105.5,39.5,-104.5) before trusting them.
-# kumi.systems is confirmed genuinely global (verified against that Colorado bbox) but
-# is a busy shared public instance and times out under load — hence the generous
-# retry/timeout budget below rather than adding more unverified mirrors.
+#
+# overpass-api.de looked blocked (406) during early development, but that was a red
+# herring from testing with a bare "Mozilla/5.0" User-Agent by hand — its bot filter
+# blocks that specific generic string, not tool traffic in general. This pipeline's own
+# USER_AGENT below always worked fine against it; don't re-add a "Mozilla/5.0" fallback
+# without checking this first.
+#
+# Both endpoints are confirmed genuinely global (verified against the Colorado bbox
+# above). Listed in order — earlier ones tried first each retry round — so if one mirror
+# has an extended outage the other picks up the slack instead of exhausting retries
+# against a dead host.
 OVERPASS_ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
 ]
 
