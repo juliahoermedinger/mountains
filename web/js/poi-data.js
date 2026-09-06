@@ -1,4 +1,5 @@
 import { distanceMeters, bearingDegrees, elevationAngleDegrees } from "./geo-math.js";
+import { t } from "./i18n.js";
 
 let poisPromise = null;
 
@@ -13,10 +14,10 @@ function loadPois() {
   return poisPromise;
 }
 
-const KIND_LABELS = { hut: "Hut", spring: "Water source", parking: "Parking" };
+const KIND_LABEL_KEYS = { hut: "kindHut", spring: "kindSpring", parking: "kindParking" };
 
 export function displayName(poi) {
-  return poi.name || KIND_LABELS[poi.kind] || "Point of interest";
+  return poi.name || t(KIND_LABEL_KEYS[poi.kind]) || t("kindDefault");
 }
 
 /**

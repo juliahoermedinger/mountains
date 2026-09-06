@@ -2,7 +2,7 @@
 // actual point of using it, since you're typically in the mountains without reception.
 // Bump CACHE_NAME on any deploy that changes these files, so returning users get the
 // update instead of a stale cache.
-const CACHE_NAME = "mountainscope-v2";
+const CACHE_NAME = "mountainscope-v3";
 
 const APP_SHELL = [
   "./",
@@ -18,6 +18,7 @@ const APP_SHELL = [
   "js/units.js",
   "js/weather.js",
   "js/hiking-estimate.js",
+  "js/i18n.js",
   "data/peaks.json",
   "data/pois.json",
   "icons/icon-192.png",

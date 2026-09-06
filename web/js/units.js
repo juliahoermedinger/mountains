@@ -24,10 +24,3 @@ export function formatDistance(meters, unit) {
   if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
   return `${Math.round(meters)} m`;
 }
-
-const COMPASS_DIRECTIONS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-
-export function compassAbbreviation(bearingDegrees) {
-  const index = Math.round(bearingDegrees / 22.5) % COMPASS_DIRECTIONS.length;
-  return COMPASS_DIRECTIONS[index];
-}

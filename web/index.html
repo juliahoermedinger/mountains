@@ -23,64 +23,79 @@
 
       <div id="permission-gate">
         <h1>MountainScope</h1>
-        <p>Point your camera at a mountain range to see what you're looking at.</p>
-        <button id="enable-button">Start scanning</button>
+        <p data-i18n="appTagline"></p>
+        <button id="enable-button" data-i18n="startScanning"></button>
         <p id="permission-message" class="message"></p>
       </div>
 
       <div id="radius-control" class="hidden">
-        <label for="radius-slider">Search radius: <span id="radius-value">50</span> km</label>
+        <label for="radius-slider"><span data-i18n="searchRadiusLabel"></span>: <span id="radius-value">50</span> km</label>
         <input type="range" id="radius-slider" min="5" max="150" step="5" value="50" />
       </div>
     </main>
 
     <main id="view-peaks" class="view">
       <div class="view-header">
-        <h1>Peaks</h1>
-        <input type="search" id="peak-search" placeholder="Search peaks by name" />
+        <h1 data-i18n="peaksTitle"></h1>
+        <input type="search" id="peak-search" data-i18n-placeholder="searchPlaceholder" />
       </div>
       <ul id="peak-list"></ul>
     </main>
 
     <main id="view-settings" class="view">
       <div class="view-header">
-        <h1>Settings</h1>
+        <h1 data-i18n="settingsTitle"></h1>
       </div>
       <section class="settings-section">
-        <h2>Units</h2>
+        <h2 data-i18n="unitsHeading"></h2>
         <div class="segmented" id="unit-toggle">
-          <button data-unit="metric" class="active">Metric (m, km)</button>
-          <button data-unit="imperial">Imperial (ft, mi)</button>
+          <button data-unit="metric" class="active" data-i18n="unitMetric"></button>
+          <button data-unit="imperial" data-i18n="unitImperial"></button>
         </div>
       </section>
       <section class="settings-section">
-        <h2>Data</h2>
+        <h2 data-i18n="languageHeading"></h2>
+        <div class="segmented" id="language-toggle">
+          <button data-lang="en" data-i18n="languageEnglish"></button>
+          <button data-lang="de" data-i18n="languageGerman"></button>
+        </div>
+      </section>
+      <section class="settings-section">
+        <h2 data-i18n="dataHeading"></h2>
         <p class="message">
-          Peak data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
-          contributors, available under the Open Database License (ODbL).
+          <span data-i18n="dataAttributionPrefix"></span>
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+          <span data-i18n="dataAttributionSuffix"></span>
         </p>
+      </section>
+      <section class="settings-section">
+        <h2 data-i18n="aboutHeading"></h2>
+        <div class="settings-row">
+          <span data-i18n="versionLabel"></span>
+          <span>1.0</span>
+        </div>
       </section>
     </main>
 
     <nav id="tab-bar">
       <button class="tab-button active" data-view="scan">
         <span class="icon">⛰</span>
-        <span>Scan</span>
+        <span data-i18n="tabScan"></span>
       </button>
       <button class="tab-button" data-view="peaks">
         <span class="icon">☰</span>
-        <span>Peaks</span>
+        <span data-i18n="tabPeaks"></span>
       </button>
       <button class="tab-button" data-view="settings">
         <span class="icon">⚙</span>
-        <span>Settings</span>
+        <span data-i18n="tabSettings"></span>
       </button>
     </nav>
   </div>
 
   <div id="peak-detail-modal" class="modal hidden">
     <div class="modal-content">
-      <button id="modal-close" class="modal-close">Done</button>
+      <button id="modal-close" class="modal-close" data-i18n="done"></button>
       <h2 id="modal-peak-name"></h2>
       <dl id="modal-peak-details"></dl>
     </div>

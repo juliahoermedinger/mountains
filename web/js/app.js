@@ -2,10 +2,11 @@ import { CameraController, LocationController, OrientationController, requestOri
 import { projectToScreen } from "./screen-projection.js";
 import { sightedPeaks, searchPeaks } from "./peak-data.js";
 import { nearbyPois, nearestOfKind, displayName as poiDisplayName } from "./poi-data.js";
-import { getUnitPreference, setUnitPreference, formatElevation, formatDistance, compassAbbreviation } from "./units.js";
+import { getUnitPreference, setUnitPreference, formatElevation, formatDistance } from "./units.js";
 import { distanceMeters, bearingDegrees } from "./geo-math.js";
 import { currentWeather } from "./weather.js";
 import { estimateHikingHours, formatHikingTime } from "./hiking-estimate.js";
+import { t, weatherDescription, compassAbbreviation, getCurrentLanguage, setCurrentLanguage } from "./i18n.js";
 
 // --- state -------------------------------------------------------------
 
@@ -19,6 +20,20 @@ const labelElements = new Map(); // "peak-<id>" / "hut-<id>" -> DOM element, reu
 const camera = new CameraController(document.getElementById("camera-video"));
 const location = new LocationController();
 const orientation = new OrientationController();
+
+// --- translations -------------------------------------------------------------
+
+function applyTranslations() {
+  document.documentElement.lang = getCurrentLanguage();
+  for (const el of document.querySelectorAll("[data-i18n]")) {
+    el.textContent = t(el.dataset.i18n);
+  }
+  for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  }
+}
+
+applyTranslations();
 
 // --- tab switching -------------------------------------------------------------
 
@@ -47,7 +62,7 @@ const radiusControl = document.getElementById("radius-control");
 
 enableButton.addEventListener("click", async () => {
   enableButton.disabled = true;
-  permissionMessage.textContent = "Requesting access…";
+  permissionMessage.textContent = t("requestingAccess");
   try {
     // Must run inside this click handler for iOS's motion-permission gesture requirement.
     const orientationGranted = await requestOrientationPermission();
@@ -60,8 +75,7 @@ enableButton.addEventListener("click", async () => {
     requestAnimationFrame(renderLoop);
   } catch (err) {
     console.error(err);
-    permissionMessage.textContent =
-      "Couldn't get camera/location access. Check your browser's site settings and try again.";
+    permissionMessage.textContent = t("accessError");
     enableButton.disabled = false;
   }
 });
@@ -227,12 +241,12 @@ async function renderPeakList() {
       return formatDistance(s.distanceMeters, unit);
     };
   } else {
-    peakList.innerHTML = `<li class="empty-message">Waiting for location…</li>`;
+    peakList.innerHTML = `<li class="empty-message">${t("waitingForLocation")}</li>`;
     return;
   }
 
   if (items.length === 0) {
-    peakList.innerHTML = `<li class="empty-message">No peaks found</li>`;
+    peakList.innerHTML = `<li class="empty-message">${t("noPeaksFound")}</li>`;
     return;
   }
 
@@ -284,19 +298,19 @@ function showPeakDetail(sighted) {
     bearing = bearingDegrees(location.latest.lat, location.latest.lon, peak.lat, peak.lon);
   }
 
-  const rows = [["Elevation", formatElevation(peak.ele, unit)]];
-  if (peak.prom != null) rows.push(["Prominence", formatElevation(peak.prom, unit)]);
-  if (distance != null) rows.push(["Distance", formatDistance(distance, unit)]);
-  if (bearing != null) rows.push(["Bearing", `${Math.round(bearing)}° ${compassAbbreviation(bearing)}`]);
+  const rows = [[t("elevation"), formatElevation(peak.ele, unit)]];
+  if (peak.prom != null) rows.push([t("prominence"), formatElevation(peak.prom, unit)]);
+  if (distance != null) rows.push([t("distance"), formatDistance(distance, unit)]);
+  if (bearing != null) rows.push([t("bearing"), `${Math.round(bearing)}° ${compassAbbreviation(bearing)}`]);
 
   if (distance != null && location.latest) {
     const ascent = peak.ele - location.latest.altitude;
     const hours = estimateHikingHours(distance, ascent);
-    rows.push(["Hiking time", `${formatHikingTime(hours)} (estimated, straight-line)`]);
+    rows.push([t("hikingTime"), `${formatHikingTime(hours)} ${t("hikingTimeEstimateSuffix")}`]);
   }
 
-  rows.push(["Latitude", peak.lat.toFixed(5)]);
-  rows.push(["Longitude", peak.lon.toFixed(5)]);
+  rows.push([t("latitude"), peak.lat.toFixed(5)]);
+  rows.push([t("longitude"), peak.lon.toFixed(5)]);
 
   modalDetails.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   modal.classList.remove("hidden");
@@ -314,11 +328,11 @@ function showPoiDetail(sightedPoi) {
   modalName.textContent = poiDisplayName(poi);
 
   const rows = [];
-  if (poi.ele != null) rows.push(["Elevation", formatElevation(poi.ele, unit)]);
-  rows.push(["Distance", formatDistance(sightedPoi.distanceMeters, unit)]);
-  rows.push(["Bearing", `${Math.round(sightedPoi.bearingDegrees)}° ${compassAbbreviation(sightedPoi.bearingDegrees)}`]);
-  rows.push(["Latitude", poi.lat.toFixed(5)]);
-  rows.push(["Longitude", poi.lon.toFixed(5)]);
+  if (poi.ele != null) rows.push([t("elevation"), formatElevation(poi.ele, unit)]);
+  rows.push([t("distance"), formatDistance(sightedPoi.distanceMeters, unit)]);
+  rows.push([t("bearing"), `${Math.round(sightedPoi.bearingDegrees)}° ${compassAbbreviation(sightedPoi.bearingDegrees)}`]);
+  rows.push([t("latitude"), poi.lat.toFixed(5)]);
+  rows.push([t("longitude"), poi.lon.toFixed(5)]);
 
   modalDetails.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   modal.classList.remove("hidden");
@@ -330,14 +344,14 @@ async function appendWeatherRow(lat, lon, elevationMeters) {
   if (modal.classList.contains("hidden")) return; // user closed it before this resolved
   const div = document.createElement("div");
   if (weather) {
-    div.innerHTML = `<dt>Weather</dt><dd>${Math.round(weather.temperatureCelsius)}°C, ${escapeHtml(weather.description)}</dd>`;
+    div.innerHTML = `<dt>${t("weather")}</dt><dd>${Math.round(weather.temperatureCelsius)}°C, ${escapeHtml(weatherDescription(weather.weatherCode))}</dd>`;
   } else {
-    div.innerHTML = `<dt>Weather</dt><dd>Unavailable (no signal?)</dd>`;
+    div.innerHTML = `<dt>${t("weather")}</dt><dd>${t("weatherUnavailable")}</dd>`;
   }
   modalDetails.appendChild(div);
 }
 
-const POI_KIND_LABELS = { hut: "Nearest hut", spring: "Nearest water source", parking: "Nearest parking" };
+const POI_KIND_TO_LABEL_KEY = { hut: "nearestHut", spring: "nearestWater", parking: "nearestParking" };
 
 /** Finds the nearest hut/spring/parking to the PEAK (not the user) — relevant for planning a hike there. */
 async function appendNearestPoiRows(peakLat, peakLon) {
@@ -346,7 +360,7 @@ async function appendNearestPoiRows(peakLat, peakLon) {
     if (modal.classList.contains("hidden")) return;
     if (!nearest) continue;
     const div = document.createElement("div");
-    div.innerHTML = `<dt>${POI_KIND_LABELS[kind]}</dt><dd>${formatDistance(nearest.distanceMeters, unit)} away</dd>`;
+    div.innerHTML = `<dt>${t(POI_KIND_TO_LABEL_KEY[kind])}</dt><dd>${formatDistance(nearest.distanceMeters, unit)} ${t("away")}</dd>`;
     modalDetails.appendChild(div);
   }
 }
@@ -365,6 +379,19 @@ for (const btn of document.querySelectorAll("#unit-toggle button")) {
 }
 
 document.querySelector(`#unit-toggle button[data-unit="${unit}"]`)?.classList.add("active");
+
+for (const btn of document.querySelectorAll("#language-toggle button")) {
+  btn.addEventListener("click", () => {
+    setCurrentLanguage(btn.dataset.lang);
+    for (const b of document.querySelectorAll("#language-toggle button")) {
+      b.classList.toggle("active", b === btn);
+    }
+    applyTranslations();
+    renderPeakList();
+  });
+}
+
+document.querySelector(`#language-toggle button[data-lang="${getCurrentLanguage()}"]`)?.classList.add("active");
 
 // --- service worker registration -------------------------------------------------------------
 

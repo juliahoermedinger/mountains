@@ -210,6 +210,13 @@ html, body {
   color: #4da3ff;
 }
 
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
 .segmented {
   display: flex;
   border-radius: 10px;
