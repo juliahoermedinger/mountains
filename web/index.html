@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>MountainScope</title>
+  <meta name="description" content="Point your camera at a mountain range to see peak names, elevations, and distances." />
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1420" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MountainScope" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <main id="view-scan" class="view active">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <div id="overlay-container"></div>
+
+      <div id="permission-gate">
+        <h1>MountainScope</h1>
+        <p>Point your camera at a mountain range to see what you're looking at.</p>
+        <button id="enable-button">Start scanning</button>
+        <p id="permission-message" class="message"></p>
+      </div>
+
+      <div id="radius-control" class="hidden">
+        <label for="radius-slider">Search radius: <span id="radius-value">50</span> km</label>
+        <input type="range" id="radius-slider" min="5" max="150" step="5" value="50" />
+      </div>
+    </main>
+
+    <main id="view-peaks" class="view">
+      <div class="view-header">
+        <h1>Peaks</h1>
+        <input type="search" id="peak-search" placeholder="Search peaks by name" />
+      </div>
+      <ul id="peak-list"></ul>
+    </main>
+
+    <main id="view-settings" class="view">
+      <div class="view-header">
+        <h1>Settings</h1>
+      </div>
+      <section class="settings-section">
+        <h2>Units</h2>
+        <div class="segmented" id="unit-toggle">
+          <button data-unit="metric" class="active">Metric (m, km)</button>
+          <button data-unit="imperial">Imperial (ft, mi)</button>
+        </div>
+      </section>
+      <section class="settings-section">
+        <h2>Data</h2>
+        <p class="message">
+          Peak data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+          contributors, available under the Open Database License (ODbL).
+        </p>
+      </section>
+    </main>
+
+    <nav id="tab-bar">
+      <button class="tab-button active" data-view="scan">
+        <span class="icon">⛰</span>
+        <span>Scan</span>
+      </button>
+      <button class="tab-button" data-view="peaks">
+        <span class="icon">☰</span>
+        <span>Peaks</span>
+      </button>
+      <button class="tab-button" data-view="settings">
+        <span class="icon">⚙</span>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="peak-detail-modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close">Done</button>
+      <h2 id="modal-peak-name"></h2>
+      <dl id="modal-peak-details"></dl>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

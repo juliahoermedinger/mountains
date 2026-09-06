@@ -1,0 +1,8 @@
+# Data pipeline intermediates (large/regenerable — final output is copied into
+# web/data/peaks.json, which IS tracked)
+tools/data/
+tools/__pycache__/
+*.pyc
+tools/*.log
+
+.DS_Store
