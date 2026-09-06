@@ -26,8 +26,11 @@ elevation angle) to figure out what's in the camera's field of view right now. S
 
 Beyond the AR peak overlay:
 - **Huts** show up in the camera view alongside peaks (blue labels vs. dark ones).
-- **Nearest hut / water source / trailhead parking** to whichever peak you're viewing is
-  shown in its detail sheet (`web/js/poi-data.js`).
+- Tapping a peak shows a deliberately minimal detail sheet: **elevation, distance,
+  estimated hiking time, live weather**, and whether a **hut / water source / trailhead
+  parking** exists nearby (as a yes/no, not a distance — the exact distance to an amenity
+  near the peak was more confusing than useful). No coordinates, bearing, or prominence
+  clutter.
 - **Live weather** for a peak's summit is fetched on demand when you open its detail
   sheet (`web/js/weather.js`, via Open-Meteo) — this is the one thing in the app that
   needs a live connection; it just doesn't show if you're offline, everything else still
@@ -35,6 +38,9 @@ Beyond the AR peak overlay:
 - **Estimated hiking time** (`web/js/hiking-estimate.js`) uses Naismith's rule (distance +
   elevation gain) — explicitly a rough estimate from straight-line distance, not a real
   trail time, since no reliable global trail-time dataset exists to draw from instead.
+- **German localization** (`web/js/i18n.js`) — auto-detected from the browser, with a
+  manual toggle in Settings. Covers UI text, weather descriptions, and compass
+  abbreviations (German uses O for Ost/East, not E).
 
 ## Repo layout
 
@@ -48,21 +54,19 @@ Beyond the AR peak overlay:
 
 ## Status
 
-The site is deployed and reachable, but hasn't been tested on a real iPhone yet. The
-geometry math, hiking-time formula, peak/POI lookup logic, and the weather API call have
-all been independently verified by actually running them (in Node, and against the real
-Open-Meteo API) — see commit history. Two things are flagged as most likely to need
-adjustment after the first real on-device test:
+Deployed, installed, and tested on a real iPhone — the camera/AR overlay, permission
+flow, and detail sheet all work in practice. The current known gap is **data coverage**,
+not the app itself: the peak/POI database currently covers western and central Austria
+only (fetched under a tight time constraint), with the Oberösterreich/eastern strip
+(where e.g. Hoher Nock and Erlakogl are) still being backfilled as the shared public
+Overpass API recovers from an extended outage — see `tools/README.md` for the full story
+on that pipeline, including a real bug it caught (a regional Overpass mirror silently
+returning empty-but-valid results for most of the world on one run).
+
+Two things remain flagged as worth double-checking if AR label placement ever looks off:
 
 1. **Compass heading/pitch** (`web/js/sensors.js`) — derived from iOS Safari's
-   non-standard `webkitCompassHeading` and the standard `beta` tilt field. The pitch
-   sign convention in particular is a best-effort derivation, not something I could
-   verify without a real device — if the AR overlay appears upside-down or inverted on
-   first test, that's the place to look.
+   non-standard `webkitCompassHeading` and the standard `beta` tilt field.
 2. **Camera field of view** (`web/js/sensors.js`, `ASSUMED_HORIZONTAL_FOV_DEGREES`) —
    browsers don't expose a device's actual calibrated FOV the way native camera APIs do,
-   so this is a fixed approximation. Label placement may drift somewhat from true
-   position; adjusting this constant is the fix if it looks systematically off.
-
-See `tools/README.md` for a data pipeline gotcha worth knowing about (a regional Overpass
-mirror silently returning empty-but-valid results for most of the world on one run).
+   so this is a fixed approximation.
