@@ -3,10 +3,10 @@ import { projectToScreen } from "./screen-projection.js";
 import { sightedPeaks, searchPeaks } from "./peak-data.js";
 import { nearbyPois, nearestOfKind, displayName as poiDisplayName } from "./poi-data.js";
 import { getUnitPreference, setUnitPreference, formatElevation, formatDistance } from "./units.js";
-import { distanceMeters, bearingDegrees } from "./geo-math.js";
+import { distanceMeters } from "./geo-math.js";
 import { currentWeather } from "./weather.js";
 import { estimateHikingHours, formatHikingTime } from "./hiking-estimate.js";
-import { t, weatherDescription, compassAbbreviation, getCurrentLanguage, setCurrentLanguage } from "./i18n.js";
+import { t, weatherDescription, getCurrentLanguage, setCurrentLanguage } from "./i18n.js";
 
 // --- state -------------------------------------------------------------
 
@@ -254,7 +254,7 @@ async function renderPeakList() {
   for (const peak of items) {
     const li = document.createElement("li");
     li.innerHTML = `<span class="peak-row-name">${escapeHtml(peak.name)}</span><span class="peak-row-sub">${subtitleFor(peak)}</span>`;
-    li.addEventListener("click", () => showPeakDetail({ peak, distanceMeters: null, bearingDegrees: null }));
+    li.addEventListener("click", () => showPeakDetail({ peak, distanceMeters: null }));
     peakList.appendChild(li);
   }
 }
@@ -288,29 +288,25 @@ function showPeakDetail(sighted) {
   const { peak } = sighted;
   modalName.textContent = peak.name;
 
-  // Peaks-tab entries don't precompute distance/bearing (only the AR overlay does, since
-  // it needs them for projection anyway) — derive from the current location if missing,
-  // so both entry points render the same row order.
+  // Peaks-tab entries don't precompute distance (only the AR overlay does, since it
+  // needs it for projection anyway) — derive from the current location if missing, so
+  // both entry points render the same row.
   let distance = sighted.distanceMeters;
-  let bearing = sighted.bearingDegrees;
   if (distance == null && location.latest) {
     distance = distanceMeters(location.latest.lat, location.latest.lon, peak.lat, peak.lon);
-    bearing = bearingDegrees(location.latest.lat, location.latest.lon, peak.lat, peak.lon);
   }
 
+  // Deliberately minimal: height and distance are the two headline facts, plus hiking
+  // time/weather as practical planning info. Prominence, bearing, and coordinates were
+  // dropped as unwanted technical clutter.
   const rows = [[t("elevation"), formatElevation(peak.ele, unit)]];
-  if (peak.prom != null) rows.push([t("prominence"), formatElevation(peak.prom, unit)]);
   if (distance != null) rows.push([t("distance"), formatDistance(distance, unit)]);
-  if (bearing != null) rows.push([t("bearing"), `${Math.round(bearing)}° ${compassAbbreviation(bearing)}`]);
 
   if (distance != null && location.latest) {
     const ascent = peak.ele - location.latest.altitude;
     const hours = estimateHikingHours(distance, ascent);
     rows.push([t("hikingTime"), `${formatHikingTime(hours)} ${t("hikingTimeEstimateSuffix")}`]);
   }
-
-  rows.push([t("latitude"), peak.lat.toFixed(5)]);
-  rows.push([t("longitude"), peak.lon.toFixed(5)]);
 
   modalDetails.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   modal.classList.remove("hidden");
@@ -330,9 +326,6 @@ function showPoiDetail(sightedPoi) {
   const rows = [];
   if (poi.ele != null) rows.push([t("elevation"), formatElevation(poi.ele, unit)]);
   rows.push([t("distance"), formatDistance(sightedPoi.distanceMeters, unit)]);
-  rows.push([t("bearing"), `${Math.round(sightedPoi.bearingDegrees)}° ${compassAbbreviation(sightedPoi.bearingDegrees)}`]);
-  rows.push([t("latitude"), poi.lat.toFixed(5)]);
-  rows.push([t("longitude"), poi.lon.toFixed(5)]);
 
   modalDetails.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   modal.classList.remove("hidden");
@@ -351,16 +344,21 @@ async function appendWeatherRow(lat, lon, elevationMeters) {
   modalDetails.appendChild(div);
 }
 
-const POI_KIND_TO_LABEL_KEY = { hut: "nearestHut", spring: "nearestWater", parking: "nearestParking" };
+const POI_KIND_TO_LABEL_KEY = { hut: "kindHut", spring: "kindSpring", parking: "kindParking" };
 
-/** Finds the nearest hut/spring/parking to the PEAK (not the user) — relevant for planning a hike there. */
+/**
+ * Whether a hut/spring/parking exists near the PEAK (not the user) — relevant for
+ * planning a hike there. Deliberately shows availability only, not the distance to it —
+ * that number invited more confusion than it was worth (read as "how far to the peak"
+ * rather than "how far the hut is from the peak").
+ */
 async function appendNearestPoiRows(peakLat, peakLon) {
   for (const kind of ["hut", "spring", "parking"]) {
     const nearest = await nearestOfKind(peakLat, peakLon, kind, NEARBY_POI_SEARCH_RADIUS_METERS);
     if (modal.classList.contains("hidden")) return;
     if (!nearest) continue;
     const div = document.createElement("div");
-    div.innerHTML = `<dt>${t(POI_KIND_TO_LABEL_KEY[kind])}</dt><dd>${formatDistance(nearest.distanceMeters, unit)} ${t("away")}</dd>`;
+    div.innerHTML = `<dt>${t(POI_KIND_TO_LABEL_KEY[kind])}</dt><dd>${t("available")}</dd>`;
     modalDetails.appendChild(div);
   }
 }
