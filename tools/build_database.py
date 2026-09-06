@@ -27,6 +27,19 @@ CACHE_PATH = os.path.join(DATA_DIR, "elevation_cache.json")
 PEAKS_OUTPUT_PATH = os.path.join(DATA_DIR, "peaks.json")
 POIS_OUTPUT_PATH = os.path.join(DATA_DIR, "pois.json")
 
+# Optional scope-down for a fast first version covering only one region: set
+# BBOX_FILTER="south,west,north,east" to drop anything outside it (e.g. stray data left
+# over from an earlier, broader-scoped fetch attempt). Unset for the normal global build.
+_bbox_env = os.environ.get("BBOX_FILTER")
+BBOX_FILTER = tuple(float(x) for x in _bbox_env.split(",")) if _bbox_env else None
+
+
+def in_bbox(lat, lon):
+    if BBOX_FILTER is None:
+        return True
+    south, west, north, east = BBOX_FILTER
+    return south <= lat <= north and west <= lon <= east
+
 
 def load_elevation_cache():
     if os.path.exists(CACHE_PATH):
@@ -48,6 +61,9 @@ def build_peaks(cache):
                 continue
             rec = json.loads(line)
             total += 1
+
+            if not in_bbox(rec["lat"], rec["lon"]):
+                continue
 
             name = rec.get("name")
             if not name:
@@ -98,6 +114,8 @@ def build_pois():
                 if not line:
                     continue
                 rec = json.loads(line)
+                if not in_bbox(rec["lat"], rec["lon"]):
+                    continue
                 poi = {
                     "id": rec["id"],
                     "lat": round(rec["lat"], 6),
@@ -118,6 +136,8 @@ def build_pois():
                 if not line:
                     continue
                 rec = json.loads(line)
+                if not in_bbox(rec["lat"], rec["lon"]):
+                    continue
                 poi = {
                     "id": rec["id"],
                     "lat": round(rec["lat"], 6),
