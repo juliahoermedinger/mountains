@@ -73,6 +73,10 @@ html, body {
   opacity: 0.85;
 }
 
+.poi-label--hut {
+  background: rgba(77, 163, 255, 0.75);
+}
+
 #permission-gate {
   position: absolute;
   inset: 0;
